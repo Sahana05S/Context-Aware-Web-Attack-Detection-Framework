@@ -11,6 +11,11 @@ from app.api.routers.auth import router as auth_router
 from app.api.deps import get_current_user
 from fastapi import Depends
 
+import logging
+from app.storage.db import get_db_connection
+
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
     title=settings.app_name,
     version="1.0.0",
@@ -19,6 +24,16 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
+
+@app.on_event("startup")
+def startup_event():
+    """Initialize database connection and create schema sequentially on startup."""
+    logger.info("Initializing database connection and schema...")
+    try:
+        get_db_connection()
+        logger.info("Database initialized successfully on startup.")
+    except Exception as e:
+        logger.error(f"Failed to initialize database on startup: {e}")
 
 # CORS Configuration
 origins = [

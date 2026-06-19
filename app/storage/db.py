@@ -15,32 +15,35 @@ try:
 except ImportError:
     psycopg2 = None
 
-# Singleton connection
-_connection: Optional[Any] = None
+import threading
+
+# Thread-local storage for connections
+_thread_local = threading.local()
 
 
 def get_db_connection() -> Any:
     """
-    Get singleton database connection (SQLite or PostgreSQL).
+    Get thread-local database connection (SQLite or PostgreSQL).
     Creates tables if they don't exist.
     """
-    global _connection
+    # Get or initialize the connection for the current thread
+    conn = getattr(_thread_local, "connection", None)
     
     # Check if existing connection is closed
     connection_is_closed = False
-    if _connection is not None:
+    if conn is not None:
         if settings.DATABASE_TYPE == "postgresql":
             try:
-                connection_is_closed = (_connection.closed != 0)
+                connection_is_closed = (conn.closed != 0)
             except AttributeError:
                 connection_is_closed = True
         else:
             try:
-                _connection.execute("SELECT 1")
+                conn.execute("SELECT 1")
             except (sqlite3.ProgrammingError, sqlite3.OperationalError):
                 connection_is_closed = True
 
-    if _connection is None or connection_is_closed:
+    if conn is None or connection_is_closed:
         try:
             if settings.DATABASE_TYPE == "postgresql":
                 if psycopg2 is None:
@@ -52,10 +55,10 @@ def get_db_connection() -> Any:
                 if db_url.startswith("postgres://"):
                     db_url = db_url.replace("postgres://", "postgresql://", 1)
                 
-                _connection = psycopg2.connect(db_url)
+                conn = psycopg2.connect(db_url)
                 # Initialize schema
-                _create_schema(_connection)
-                logger.info("Connected to PostgreSQL database")
+                _create_schema(conn)
+                logger.info("Connected to PostgreSQL database (thread-local)")
             else:
                 # Ensure directory exists
                 db_dir = os.path.dirname(settings.DATABASE_PATH)
@@ -63,27 +66,29 @@ def get_db_connection() -> Any:
                     os.makedirs(db_dir, exist_ok=True)
                 
                 # Connect
-                _connection = sqlite3.connect(
+                conn = sqlite3.connect(
                     settings.DATABASE_PATH,
                     check_same_thread=False  # Allow multi-threaded use (with caution)
                 )
                 
                 # Enable foreign keys
-                _connection.execute("PRAGMA foreign_keys = ON;")
+                conn.execute("PRAGMA foreign_keys = ON;")
                 
                 # Enable WAL mode and normal synchronous for concurrency and performance
-                _connection.execute("PRAGMA journal_mode = WAL;")
-                _connection.execute("PRAGMA synchronous = NORMAL;")
+                conn.execute("PRAGMA journal_mode = WAL;")
+                conn.execute("PRAGMA synchronous = NORMAL;")
                 
                 # Initialize schema
-                _create_schema(_connection)
-                logger.info(f"Connected to SQLite database at {settings.DATABASE_PATH}")
+                _create_schema(conn)
+                logger.info(f"Connected to SQLite database at {settings.DATABASE_PATH} (thread-local)")
                 
+            _thread_local.connection = conn
+            
         except Exception as e:
             logger.error(f"Failed to connect to database: {e}")
             raise
 
-    return _connection
+    return conn
 
 
 def _create_schema(conn: Any) -> None:
@@ -366,11 +371,11 @@ def _create_schema(conn: Any) -> None:
 
 
 def close_db_connection():
-    """Close database connection"""
-    global _connection
-    if _connection:
+    """Close database connection for the current thread"""
+    conn = getattr(_thread_local, "connection", None)
+    if conn:
         try:
-            _connection.close()
+            conn.close()
         except Exception as e:
             logger.warning(f"Error closing database connection: {e}")
-        _connection = None
+        _thread_local.connection = None
