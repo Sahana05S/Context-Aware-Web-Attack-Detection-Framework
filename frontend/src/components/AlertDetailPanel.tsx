@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { AlertSummary } from '../api/types';
 import { ShieldAlert, Shield, Cpu, Activity, Brain, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface AlertDetailPanelProps {
     alert: AlertSummary;
