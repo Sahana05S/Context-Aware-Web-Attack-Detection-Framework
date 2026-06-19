@@ -28,6 +28,12 @@ def generate_dashboard_summary(stats: Dict[str, Any]) -> str:
             logger.debug("AI Summary cache hit")
             return summary
 
+    # Prevent LLM hallucinations if there are no alerts in the system
+    alert_counts = stats.get('alert_counts', {})
+    total_alerts = sum(alert_counts.values()) if isinstance(alert_counts, dict) else 0
+    if total_alerts == 0:
+        return "No threats or anomalous activities detected in the selected time window. All systems are operating normally with automated monitors active."
+
     api_key = settings.AI_API_KEY
     if not api_key:
         return "AI integration is not configured. Heuristic monitoring is active. Check the Recent Alerts table for any high severity events in the current window."
