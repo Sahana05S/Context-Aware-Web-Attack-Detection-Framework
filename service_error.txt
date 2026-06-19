@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "D:\Context-Aware Web Attack Detection Framework\app\storage\service.py", line 76, in store_detection_result
+    self.repo.insert_risk_result(event_id, risk_result)
+  File "D:\Context-Aware Web Attack Detection Framework\app\storage\repository.py", line 100, in insert_risk_result
+    self.conn.execute(
+sqlite3.OperationalError: table risk_results has no column named results_json

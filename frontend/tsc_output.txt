@@ -1,0 +1,21 @@
+﻿src/components/layout/Layout.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/layout/Layout.tsx(3,40): error TS2305: Module '"lucide-react"' has no exported member 'ListAlerts'.
+src/components/layout/StatsCard.tsx(12,68): error TS6133: 'trend' is declared but its value is never read.
+src/components/ui/Badge.tsx(2,40): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/Badge.tsx(32,29): error TS2339: Property 'variant' does not exist on type 'BadgeProps'.
+src/components/ui/Button.tsx(2,22): error TS2307: Cannot find module '@radix-ui/react-slot' or its corresponding type declarations.
+src/components/ui/Button.tsx(3,40): error TS2307: Cannot find module 'class-variance-authority' or its corresponding type declarations.
+src/components/ui/Button.tsx(42,19): error TS2339: Property 'variant' does not exist on type 'ButtonProps'.
+src/components/ui/Button.tsx(42,28): error TS2339: Property 'size' does not exist on type 'ButtonProps'.
+src/components/ui/SeverityBadge.tsx(33,16): error TS2322: Type '{ children: string; variant: "secondary" | "destructive" | "outline" | "warning" | "danger"; className: string; }' is not assignable to type 'IntrinsicAttributes & BadgeProps'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & BadgeProps'.
+src/pages/Alerts.tsx(13,19): error TS6133: 'setLimit' is declared but its value is never read.
+src/pages/Alerts.tsx(47,48): error TS2322: Type '{ children: string; onClick: () => Promise<void>; variant: string; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/pages/Dashboard.tsx(46,40): error TS2322: Type '{ children: string; onClick: () => Promise<void>; variant: string; className: string; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/pages/Dashboard.tsx(55,11): error TS6133: 'highCount' is declared but its value is never read.
+src/pages/Dashboard.tsx(72,48): error TS2322: Type '{ children: string; onClick: () => Promise<void>; size: string; variant: string; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+src/pages/IPDetail.tsx(34,29): error TS2322: Type '{ children: Element; variant: string; size: string; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ButtonProps & RefAttributes<HTMLButtonElement>'.
