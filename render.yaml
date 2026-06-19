@@ -9,6 +9,9 @@ services:
     startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
     plan: free # Deploys on Render's 100% free tier
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+
       - key: DATABASE_URL
         sync: false
         description: "Your Neon PostgreSQL connection string (e.g. postgresql://neondb_owner:...)"
