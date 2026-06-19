@@ -1,0 +1,30 @@
+# Render Blueprint configuration file for WAF Backend
+# Go to https://dashboard.render.com/blueprints to deploy this in one click!
+
+services:
+  - type: web
+    name: context-aware-waf-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
+    plan: free # Deploys on Render's 100% free tier
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+        description: "Your Neon PostgreSQL connection string (e.g. postgresql://neondb_owner:...)"
+      
+      - key: AI_API_KEY
+        sync: false
+        description: "Your Gemini AI API Key"
+      
+      - key: JWT_SECRET
+        generateValue: true
+        description: "Automatically generated secure key for JWT auth tokens"
+      
+      - key: ALLOWED_ORIGINS
+        sync: false
+        description: "Your Vercel frontend URL (or * to allow any frontend)"
+        value: "*"
+      
+      - key: PORT
+        value: 10000
