@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { api } from "../api/endpoints";
 import { OverviewStats, AlertSummary } from "../api/types";
 import { StatsCard } from "../components/layout/StatsCard";
@@ -16,12 +16,17 @@ export function Dashboard() {
     const [aiSummary, setAiSummary] = useState<string>("Loading AI summary...");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [retrying, setRetrying] = useState(false);
+    const [retryCountdown, setRetryCountdown] = useState(0);
     const [sinceMinutes, setSinceMinutes] = useState(1440); // 24h
     const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+    const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const loadData = async () => {
-        setLoading(true);
+    const loadData = async (isRetry = false) => {
+        if (!isRetry) setLoading(true);
         setError(null);
+        setRetrying(false);
+        if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
         try {
             const [statsData, alertsData, aiSummaryData] = await Promise.all([
                 api.overview(sinceMinutes),
@@ -33,7 +38,22 @@ export function Dashboard() {
             setAiSummary(aiSummaryData.summary);
             setLastRefresh(new Date());
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to load dashboard data");
+            const msg = err instanceof Error ? err.message : "Failed to load dashboard data";
+            setError(msg);
+            // Auto-retry after 15s (handles Render cold-start)
+            setRetrying(true);
+            setRetryCountdown(15);
+            const countdown = setInterval(() => {
+                setRetryCountdown(prev => {
+                    if (prev <= 1) { clearInterval(countdown); return 0; }
+                    return prev - 1;
+                });
+            }, 1000);
+            retryTimerRef.current = setTimeout(() => {
+                clearInterval(countdown);
+                setRetrying(false);
+                loadData(true);
+            }, 15000);
         } finally {
             setLoading(false);
         }
@@ -41,6 +61,7 @@ export function Dashboard() {
 
     useEffect(() => {
         loadData();
+        return () => { if (retryTimerRef.current) clearTimeout(retryTimerRef.current); };
     }, [sinceMinutes]);
 
     if (loading && !stats) return (
@@ -53,11 +74,33 @@ export function Dashboard() {
     );
 
     if (error) return (
-        <div className="flex flex-col items-center justify-center h-64 gap-4">
-            <AlertTriangle className="h-8 w-8" style={{ color: 'var(--sev-critical)' }} />
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Error: {error}</p>
-            <button onClick={loadData} className="btn-outline text-sm">
-                Retry
+        <div className="flex flex-col items-center justify-center h-64 gap-4" style={{ textAlign: 'center' }}>
+            <div style={{
+                width: 64, height: 64, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #FFF2AF 0%, #FFD700 100%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 20px rgba(251,191,36,0.3)'
+            }}>
+                <AlertTriangle className="h-7 w-7" style={{ color: '#B45309' }} />
+            </div>
+            <div>
+                <p className="text-base font-semibold" style={{ color: '#1A1433', marginBottom: 4 }}>
+                    {retrying ? '⚡ Backend is waking up…' : 'Unable to reach backend'}
+                </p>
+                <p className="text-sm" style={{ color: 'var(--text-muted)', maxWidth: 360 }}>
+                    {retrying
+                        ? `The server on Render's free tier needs ~30s to start. Auto-retrying in ${retryCountdown}s…`
+                        : 'The API server did not respond. It may be starting up or temporarily unavailable.'}
+                </p>
+            </div>
+            {retrying ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--purple-mid)', fontSize: '0.85rem' }}>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    <span>Retrying in {retryCountdown}s…</span>
+                </div>
+            ) : null}
+            <button onClick={() => loadData(false)} className="btn-primary text-sm" style={{ marginTop: 4 }}>
+                Retry Now
             </button>
         </div>
     );
@@ -123,7 +166,7 @@ export function Dashboard() {
 
                     {/* Refresh button */}
                     <button
-                        onClick={loadData}
+                        onClick={() => loadData(false)}
                         disabled={loading}
                         className="btn-outline flex items-center gap-1.5 text-xs"
                         style={{ opacity: loading ? 0.65 : 1, padding: '7px 14px' }}

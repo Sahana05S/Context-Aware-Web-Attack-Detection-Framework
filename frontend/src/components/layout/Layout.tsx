@@ -18,19 +18,44 @@ export function Layout() {
   const location  = useLocation();
   const navigate  = useNavigate();
   const { logout }            = useAuth();
-  const [health, setHealth]   = useState<'ok' | 'error' | 'loading'>('loading');
+  const [health, setHealth]   = useState<'ok' | 'error' | 'loading' | 'waking'>('loading');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
+    let retryCount = 0;
+    let intervalId: ReturnType<typeof setInterval>;
+
     const check = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/health`);
-        setHealth(res.ok ? 'ok' : 'error');
-      } catch { setHealth('error'); }
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/health`,
+          { signal: controller.signal }
+        );
+        clearTimeout(timeout);
+        if (res.ok) {
+          setHealth('ok');
+          retryCount = 0;
+          // Back to normal 60s polling once healthy
+          clearInterval(intervalId);
+          intervalId = setInterval(check, 60000);
+        } else {
+          setHealth('error');
+        }
+      } catch {
+        retryCount++;
+        // First few failures = Render cold-start waking up, not a real error
+        setHealth(retryCount <= 6 ? 'waking' : 'error');
+        // Retry every 10s when unhealthy
+        clearInterval(intervalId);
+        intervalId = setInterval(check, 10000);
+      }
     };
+
     check();
-    const t = setInterval(check, 60000);
-    return () => clearInterval(t);
+    intervalId = setInterval(check, 60000);
+    return () => clearInterval(intervalId);
   }, []);
 
   const SidebarContent = () => (
@@ -90,10 +115,15 @@ export function Layout() {
           background: 'rgba(255,255,255,0.07)',
           marginBottom: 10
         }}>
-          <Activity size={12} color={health === 'ok' ? '#4ADE80' : '#F87171'} />
+          <Activity size={12} color={health === 'ok' ? '#4ADE80' : health === 'waking' ? '#FBBF24' : '#F87171'}
+            style={health === 'waking' ? { animation: 'pulse 1s infinite' } : {}}
+          />
           <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)' }}>API</span>
-          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: health === 'ok' ? '#4ADE80' : '#F87171', marginLeft: 'auto', textTransform: 'uppercase' }}>
-            {health}
+          <span style={{
+            fontSize: '0.72rem', fontWeight: 600, marginLeft: 'auto', textTransform: 'uppercase',
+            color: health === 'ok' ? '#4ADE80' : health === 'waking' ? '#FBBF24' : '#F87171'
+          }}>
+            {health === 'waking' ? 'Waking…' : health}
           </span>
         </div>
 
