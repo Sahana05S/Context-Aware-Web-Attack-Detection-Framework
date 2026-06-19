@@ -216,6 +216,7 @@ def _create_schema(conn: Any) -> None:
 
         # 8. Migrations (PostgreSQL check column)
         try:
+            # Check for url
             cursor.execute("""
                 SELECT column_name 
                 FROM information_schema.columns 
@@ -224,9 +225,18 @@ def _create_schema(conn: Any) -> None:
             if not cursor.fetchone():
                 cursor.execute("ALTER TABLE alerts ADD COLUMN url VARCHAR(2048);")
                 cursor.execute("ALTER TABLE alerts ADD COLUMN user_agent VARCHAR(1024);")
+                logger.info("Migrated alerts table with url columns (PostgreSQL).")
+                
+            # Check for ai_explanation
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'alerts' AND column_name = 'ai_explanation'
+            """)
+            if not cursor.fetchone():
                 cursor.execute("ALTER TABLE alerts ADD COLUMN ai_explanation TEXT;")
                 cursor.execute("ALTER TABLE alerts ADD COLUMN signal_breakdown TEXT;")
-                logger.info("Migrated alerts table with new columns (PostgreSQL).")
+                logger.info("Migrated alerts table with ai columns (PostgreSQL).")
         except Exception as e:
             logger.error(f"PostgreSQL Migration error: {e}")
 
@@ -361,9 +371,11 @@ def _create_schema(conn: Any) -> None:
             if "url" not in columns:
                 cursor.execute("ALTER TABLE alerts ADD COLUMN url TEXT;")
                 cursor.execute("ALTER TABLE alerts ADD COLUMN user_agent TEXT;")
+                logger.info("Migrated alerts table with url columns (SQLite).")
+            if "ai_explanation" not in columns:
                 cursor.execute("ALTER TABLE alerts ADD COLUMN ai_explanation TEXT;")
                 cursor.execute("ALTER TABLE alerts ADD COLUMN signal_breakdown TEXT;")
-                logger.info("Migrated alerts table with new columns (SQLite).")
+                logger.info("Migrated alerts table with ai columns (SQLite).")
         except Exception as e:
             logger.error(f"SQLite Migration error: {e}")
 
