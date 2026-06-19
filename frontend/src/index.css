@@ -299,7 +299,6 @@
     font-style: italic;
   }
 
-  /* ── Form Inputs ──────────────────────────────── */
   .input-field {
     width: 100%;
     background: var(--bg-input);
@@ -307,12 +306,21 @@
     border-radius: 8px;
     padding: 9px 13px;
     font-size: 0.875rem;
-    color: var(--text-primary);
+    color: #1A1433 !important; /* Force dark text color on light backgrounds */
     outline: none;
     transition: border-color 0.15s ease;
     font-family: inherit;
   }
   .input-field:focus { border-color: var(--purple-mid); box-shadow: 0 0 0 3px rgba(178,165,255,0.18); }
+
+  /* Autofill styling override */
+  .input-field:-webkit-autofill,
+  .input-field:-webkit-autofill:hover,
+  .input-field:-webkit-autofill:focus {
+    -webkit-text-fill-color: #1A1433 !important;
+    -webkit-box-shadow: 0 0 0px 1000px #F5F3FF inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
 
   /* ── Monospace ────────────────────────────────── */
   .font-mono-soc {

@@ -28,13 +28,19 @@ origins = [
     "http://127.0.0.1:3000",
 ]
 
-# Add configurable origins if needed provided via env
-# For now, we stick to safe defaults for development.
+# Add allowed origins from settings
+if settings.ALLOWED_ORIGINS and settings.ALLOWED_ORIGINS != "*":
+    for origin in settings.ALLOWED_ORIGINS.split(","):
+        clean_origin = origin.strip()
+        if clean_origin and clean_origin not in origins:
+            origins.append(clean_origin)
+
+allow_all_origins = settings.ALLOWED_ORIGINS == "*"
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"] if allow_all_origins else origins,
+    allow_credentials=False if allow_all_origins else True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

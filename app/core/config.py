@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     AI_MODEL: str = "llama-3.1-8b-instant"
     AI_ENABLED: bool = True
 
+    # CORS Settings
+    ALLOWED_ORIGINS: str = "*"
+
     # Flow / Session Detection
     FLOW_DETECTION_ENABLED: bool = True
     FLOW_SESSION_TIMEOUT: int = 300
