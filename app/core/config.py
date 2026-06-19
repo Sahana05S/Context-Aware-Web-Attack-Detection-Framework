@@ -36,7 +36,18 @@ class Settings(BaseSettings):
     
     # Module 7: Storage
     DATABASE_PATH: str = "./data/security.db"
+    DATABASE_URL: str = ""
     ALERT_RISK_THRESHOLD: int = 25
+
+    @property
+    def DATABASE_TYPE(self) -> str:
+        """Determine database type based on presence of postgresql connection string"""
+        if self.DATABASE_URL and (
+            self.DATABASE_URL.startswith("postgres://") or 
+            self.DATABASE_URL.startswith("postgresql://")
+        ):
+            return "postgresql"
+        return "sqlite"
 
     # AI Intent Analyzer
     AI_API_KEY: str = ""
