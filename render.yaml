@@ -22,7 +22,6 @@ services:
         description: "Automatically generated secure key for JWT auth tokens"
       
       - key: ALLOWED_ORIGINS
-        sync: false
         description: "Your Vercel frontend URL (or * to allow any frontend)"
         value: "*"
       
