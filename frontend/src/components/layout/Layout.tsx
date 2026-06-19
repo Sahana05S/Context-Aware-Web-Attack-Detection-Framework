@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ShieldAlert, LayoutDashboard, BellRing, UploadCloud,
-  Radio, LogOut, Brain, Activity, Sun, Moon, Menu
+  Radio, LogOut, Brain, Activity, Menu
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
 
 const NAV_ITEMS = [
   { label: 'Dashboard',    path: '/dashboard', icon: LayoutDashboard },
@@ -19,7 +18,6 @@ export function Layout() {
   const location  = useLocation();
   const navigate  = useNavigate();
   const { logout }            = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const [health, setHealth]   = useState<'ok' | 'error' | 'loading'>('loading');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -99,21 +97,16 @@ export function Layout() {
           </span>
         </div>
 
-        {/* Theme + Logout */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={toggleTheme}
-            title="Toggle Theme"
-            style={{ flex: 1, padding: '8px', borderRadius: 8, background: 'rgba(255,255,255,0.08)', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
-          >
-            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-          </button>
+        {/* Logout */}
+        <div style={{ display: 'flex' }}>
           <button
             onClick={() => { logout(); navigate('/login'); }}
             title="Sign Out"
-            style={{ flex: 1, padding: '8px', borderRadius: 8, background: 'rgba(255,255,255,0.08)', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+            style={{ flex: 1, padding: '10px', borderRadius: 8, background: 'rgba(255,255,255,0.08)', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.15s', fontSize: '0.8rem', fontWeight: 600 }}
+            className="hover:bg-white/15"
           >
             <LogOut size={15} />
+            Sign Out
           </button>
         </div>
       </div>
